@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Shift Abs">
+<link rel="manifest" href="manifest.json">
+<title>Shift Abs</title>
+<style>
+:root{--bg:#0f172a;--card:#1e293b;--text:#f1f5f9;--muted:#94a3b8;--accent:#22c55e;--accent2:#3b82f6;--danger:#ef4444;--border:#334155;--radius:14px}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);padding-bottom:80px;-webkit-tap-highlight-color:transparent}
+.app{max-width:720px;margin:0 auto;padding:16px}
+header{text-align:center;margin:10px 0 16px}
+header h1{font-size:1.35rem;margin:0}
+header p{color:var(--muted);font-size:.85rem;margin:4px 0 0}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:8px 0 10px;position:sticky;top:0;background:var(--bg);z-index:10;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:0 0 auto;background:var(--card);color:var(--muted);border:1px solid var(--border);padding:10px 14px;border-radius:999px;font-size:.85rem;cursor:pointer}
+.tabs button.active{background:var(--accent);color:#052e16;border-color:var(--accent);font-weight:700}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+.card h2{font-size:1.05rem;margin:0 0 12px}
+label{display:block;font-size:.8rem;color:var(--muted);margin:10px 0 4px}
+input,select,button{font:inherit}
+input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:#0b1220;color:var(--text)}
+button{background:var(--accent2);color:#fff;border:none;padding:11px 14px;border-radius:10px;font-weight:600;cursor:pointer;margin-top:10px}
+button.secondary{background:var(--card);border:1px solid var(--border);color:var(--text)}
+button.danger{background:var(--danger)}
+button.install{background:var(--accent);color:#052e16;width:100%;font-size:1rem;padding:14px;display:none}
+button.small{padding:7px 10px;font-size:.8rem;margin:4px 4px 0 0}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:480px){.row{grid-template-columns:1fr}}
+.stat{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:.9rem}
+.stat:last-child{border-bottom:none}
+.stat strong{color:var(--accent)}
+.progress{height:12px;background:#0b1220;border-radius:999px;overflow:hidden;margin:8px 0}
+.progress>div{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0%;transition:width .3s}
+.list{list-style:none;padding:0;margin:10px 0 0}
+.list li{background:#0b1220;border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;font-size:.85rem;display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.list li .meta{color:var(--muted);font-size:.75rem}
+.preview{max-width:100%;border-radius:10px;margin-top:8px;display:none}
+.status{font-size:.8rem;color:var(--muted);margin-top:8px;min-height:1.2em}
+.timer{font-size:2.4rem;font-weight:800;text-align:center;margin:10px 0}
+.timer small{display:block;font-size:.9rem;color:var(--muted);font-weight:400;margin-top:4px}
+.note{font-size:.75rem;color:var(--muted);text-align:center;margin:20px 0;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+<h1>🍽️ Shift Abs</h1>
+<p>Fat-loss & abs app for restaurant workers</p>
+</header>
+
+<button class="install" id="installBtn">⬇️ Install app on this device</button>
+
+<nav class="tabs">
+<button data-tab="dashboard" class="active">Dashboard</button>
+<button data-tab="setup">Setup</button>
+<button data-tab="food">Food</button>
+<button data-tab="water">Water</button>
+<button data-tab="workout">Workout</button>
+<button data-tab="progress">Progress</button>
+</nav>
+
+<main>
+<section id="dashboard" class="tab-panel active">
+<div class="card">
+<h2>Today</h2>
+<div class="stat"><span>Calorie target</span><strong id="dashCalTarget">—</strong></div>
+<div class="stat"><span>Calories eaten</span><strong id="dashCalEaten">0</strong></div>
+<div class="stat"><span>Protein target</span><strong id="dashProteinTarget">—</strong></div>
+<div class="stat"><span>Protein eaten</span><strong id="dashProteinEaten">0 g</strong></div>
+<div class="stat"><span>Water target</span><strong id="dashWaterTarget">—</strong></div>
+<div class="stat"><span>Water drunk</span><strong id="dashWaterDrunk">0 ml</strong></div>
+</div>
+<div class="card">
+<h2>Quick Actions</h2>
+<button class="small" onclick="addWater(250)">+250 ml water</button>
+<button class="small" onclick="addWater(500)">+500 ml water</button>
+<button class="small" onclick="switchTab('food')">Log food</button>
+<button class="small" onclick="switchTab('workout')">Start workout</button>
+</div>
+</section>
+
+<section id="setup" class="tab-panel">
+<div class="card">
+<h2>Your Profile</h2>
+<label>Name</label><input id="setupName" placeholder="Your name">
+<div class="row">
+<div><label>Sex</label><select id="setupSex"><option value="male">Male</option><option value="female">Female</option></select></div>
+<div><label>Age</label><input id="setupAge" type="number" value="30"></div>
+</div>
+<div class="row">
+<div><label>Height (cm)</label><input id="setupHeight" type="number" value="170"></div>
+<div><label>Current weight (kg)</label><input id="setupWeight" type="number" step="0.1" value="80"></div>
+</div>
+<div class="row">
+<div><label>Goal weight (kg)</label><input id="setupGoalWeight" type="number" step="0.1" value="70"></div>
+<div><label>Activity level</label><select id="setupActivity">
+<option value="sedentary">Sedentary</option>
+<option value="light">Light</option>
+<option value="moderate" selected>Moderate</option>
+<option value="active">Active</option>
+<option value="veryActive">Very active</option>
+</select></div>
+</div>
+<div class="row">
+<div><label>Restaurant shift</label><select id="setupShift">
+<option value="morning">Morning</option>
+<option value="evening" selected>Evening</option>
+<option value="long">Long / double</option>
+</select></div>
+<div><label>Workout minutes</label><input id="setupWorkoutMinutes" type="number" value="10"></div>
+</div>
+<label>Gemini API key (optional)</label>
+<input id="setupApiKey" type="password" placeholder="Paste free Gemini API key">
+<label>Gemini model</label>
+<input id="setupModel" value="gemini-2.0-flash">
+<button onclick="saveProfile()">Save Profile</button>
+<p class="status" id="setupStatus"></p>
+</div>
+<div class="card">
+<h2>Backup & Restore</h2>
+<button class="small" onclick="exportData()">⬇️ Export data</button>
+<button class="small secondary" onclick="document.getElementById('importFile').click()">⬆️ Import data</button>
+<input type="file" id="importFile" accept="application/json" style="display:none">
+<p class="status" id="backupStatus"></p>
+</div>
+</section>
+
+<section id="food" class="tab-panel">
+<div class="card">
+<h2>Food Photo Analysis</h2>
+<input type="file" id="foodPhoto" accept="image/*" capture="environment">
+<img id="foodPreview" class="preview" alt="Food preview">
+<label>Description (optional)</label>
+<input id="foodDesc" placeholder="e.g. grilled chicken with rice">
+<button onclick="analyzeFood()">Analyze Photo</button>
+<p class="status" id="foodStatus"></p>
+</div>
+<div class="card">
+<h2>Manual Entry</h2>
+<label>Food name</label><input id="foodName" placeholder="Food">
+<div class="row">
+<div><label>Calories</label><input id="foodCal" type="number" placeholder="kcal"></div>
+<div><label>Protein (g)</label><input id="foodProtein" type="number" placeholder="g"></div>
+</div>
+<div class="row">
+<div><label>Carbs (g)</label><input id="foodCarbs" type="number" placeholder="g"></div>
+<div><label>Fat (g)</label><input id="foodFat" type="number" placeholder="g"></div>
+</div>
+<button onclick="addFood()">Add to Log</button>
+</div>
+<div class="card">
+<h2>Today's Food Log</h2>
+<ul class="list" id="foodLogList"></ul>
+</div>
+</section>
+
+<section id="water" class="tab-panel">
+<div class="card">
+<h2>Hydration</h2>
+<div class="stat"><span>Target</span><strong id="waterTarget">—</strong></div>
+<div class="stat"><span>Drunk</span><strong id="waterDrunk">0 ml</strong></div>
+<div class="progress"><div id="waterBar"></div></div>
+<button onclick="addWater(250)">+250 ml</button>
+<button onclick="addWater(500)">+500 ml</button>
+<button class="secondary" onclick="resetWater()">Reset today</button>
+<p class="status" id="waterStatus"></p>
+</div>
+</section>
+
+<section id="workout" class="tab-panel">
+<div class="card">
+<h2>Physique Photo (optional)</h2>
+<input type="file" id="physiquePhoto" accept="image/*" capture="environment">
+<img id="physiquePreview" class="preview" alt="Physique preview">
+<button onclick="analyzePhysique()">Analyze Physique</button>
+<p class="status" id="physiqueStatus"></p>
+<div id="physiqueResult" style="font-size:.85rem;margin-top:10px"></div>
+</div>
+<div class="card">
+<h2>Generate Home Workout</h2>
+<div class="row">
+<div><label>Level</label><select id="workoutLevel">
+<option value="beginner">Beginner</option>
+<option value="intermediate" selected>Intermediate</option>
+<option value="advanced">Advanced</option>
+</select></div>
+<div><label>Minutes</label><input id="workoutMinutes" type="number" value="10"></div>
+</div>
+<button onclick="generateWorkout()">Generate Workout</button>
+<div id="workoutPlan"></div>
+</div>
+<div class="card">
+<h2>Workout Timer</h2>
+<div class="timer" id="timerDisplay">Ready<small>Generate a workout, then press Start</small></div>
+<button onclick="startWorkout()">Start</button>
+<button class="secondary" onclick="stopWorkout()">Stop</button>
+</div>
+</section>
+
+<section id="progress" class="tab-panel">
+<div class="card">
+<h2>Weight Log</h2>
+<div class="row">
+<div><label>Weight (kg)</label><input id="progressWeight" type="number" step="0.1"></div>
+<div><label>Date</label><input id="progressDate" type="date"></div>
+</div>
+<button onclick="addWeight()">Add Weight</button>
+<ul class="list" id="weightList"></ul>
+</div>
+</section>
+</main>
+<div class="note">Not medical advice. Consult a doctor before starting any weight-loss or exercise program.<br><span id="swNote"></span></div>
+</div>
+
+<script>
+const STORAGE_KEY='shiftAbsData_v3';
+let state={profile:{name:'',sex:'male',age:30,height:170,weight:80,goalWeight:70,activity:'moderate',shift:'evening',workoutMinutes:10,apiKey:'',model:'gemini-2.0-flash'},foodLog:[],waterLog:{},weightLog:[],workoutPlan:null};
+
+function loadState(){try{const s=localStorage.getItem(STORAGE_KEY);if(s)state=Object.assign(state,JSON.parse(s));}catch(e){console.warn(e);}}
+function saveState(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){console.warn(e);}}
+function todayKey(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+
+function calcBMR(){const p=state.profile,w=+p.weight||0,h=+p.height||0,a=+p.age||0;
+return p.sex==='female'?10*w+6.25*h-5*a-161:10*w+6.25*h-5*a+5;}
+function activityFactor(){return {sedentary:1.2,light:1.375,moderate:1.55,active:1.725,veryActive:1.9}[state.profile.activity]||1.55;}
+function calcTargets(){const bmr=calcBMR(),tdee=bmr*activityFactor();
+let cal=tdee-500;const min=state.profile.sex==='female'?1200:1500;if(cal<min)cal=min;
+const gw=+state.profile.goalWeight||+state.profile.weight||70;
+const protein=Math.round(gw*2.0);
+const shiftAdd=state.profile.shift==='long'?750:state.profile.shift==='evening'?500:0;
+const water=Math.round(gw*40+shiftAdd+250);
+return{bmr:Math.round(bmr),tdee:Math.round(tdee),cal:Math.round(cal),protein,water};}
+function todayFood(){const t=todayKey();return state.foodLog.filter(f=>f.date===t);}
+function todayWater(){return state.waterLog[todayKey()]||0;}
+
+function updateDashboard(){const t=calcTargets();
+document.getElementById('dashCalTarget').textContent=t.cal+' kcal';
+document.getElementById('dashProteinTarget').textContent=t.protein+' g';
+document.getElementById('dashWaterTarget').textContent=(t.water/1000).toFixed(2)+' L';
+const eaten=todayFood().reduce((s,f)=>s+(+f.calories||0),0);
+const prot=todayFood().reduce((s,f)=>s+(+f.protein||0),0);
+document.getElementById('dashCalEaten').textContent=Math.round(eaten)+' kcal';
+document.getElementById('dashProteinEaten').textContent=Math.round(prot)+' g';
+document.getElementById('dashWaterDrunk').textContent=todayWater()+' ml';
+renderFoodLog();renderWater();renderWeightLog();}
+function renderFoodLog(){const list=document.getElementById('foodLogList'),items=todayFood();
+if(!items.length){list.innerHTML='<li style="color:var(--muted)">No food logged today.</li>';return;}
+list.innerHTML=items.map((f,i)=>'<li><div><strong>'+escapeHtml(f.name)+'</strong><div class="meta">'+(f.calories||0)+' kcal · P '+(f.protein||0)+'g · C '+(f.carbs||0)+'g · F '+(f.fat||0)+'g</div></div><button class="danger small" onclick="deleteFood('+i+')">×</button></li>').join('');}
+function renderWater(){const t=calcTargets(),drunk=todayWater();
+document.getElementById('waterTarget').textContent=(t.water/1000).toFixed(2)+' L';
+document.getElementById('waterDrunk').textContent=drunk+' ml';
+document.getElementById('waterBar').style.width=Math.min(100,(drunk/t.water)*100)+'%';}
+function renderWeightLog(){const list=document.getElementById('weightList');
+if(!state.weightLog.length){list.innerHTML='<li style="color:var(--muted)">No weight entries yet.</li>';return;}
+list.innerHTML=[...state.weightLog].sort((a,b)=>b.date.localeCompare(a.date)).map(w=>'<li><span>'+escapeHtml(w.date)+'</span><strong>'+w.weight+' kg</strong></li>').join('');}
+
+function switchTab(id){document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+document.querySelector('.tabs button[data-tab="'+id+'"]').classList.add('active');
+updateDashboard();}
+document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+
+function saveProfile(){state.profile={name:document.getElementById('setupName').value.trim(),sex:document.getElementById('setupSex').value,age:+document.getElementById('setupAge').value||30,height:+document.getElementById('setupHeight').value||170,weight:+document.getElementById('setupWeight').value||80,goalWeight:+document.getElementById('setupGoalWeight').value||70,activity:document.getElementById('setupActivity').value,shift:document.getElementById('setupShift').value,workoutMinutes:+document.getElementById('setupWorkoutMinutes').value||10,apiKey:document.getElementById('setupApiKey').value.trim(),model:document.getElementById('setupModel').value.trim()||'gemini-2.0-flash'};
+saveState();document.getElementById('setupStatus').textContent='✓ Profile saved.';
+document.getElementById('workoutMinutes').value=state.profile.workoutMinutes;updateDashboard();}
+function loadProfileToForm(){const p=state.profile;
+document.getElementById('setupName').value=p.name||'';
+document.getElementById('setupSex').value=p.sex||'male';
+document.getElementById('setupAge').value=p.age||30;
+document.getElementById('setupHeight').value=p.height||170;
+document.getElementById('setupWeight').value=p.weight||80;
+document.getElementById('setupGoalWeight').value=p.goalWeight||70;
+document.getElementById('setupActivity').value=p.activity||'moderate';
+document.getElementById('setupShift').value=p.shift||'evening';
+document.getElementById('setupWorkoutMinutes').value=p.workoutMinutes||10;
+document.getElementById('setupApiKey').value=p.apiKey||'';
+document.getElementById('setupModel').value=p.model||'gemini-2.0-flash';}
+
+function exportData(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+a.download='shift-abs-backup-'+todayKey()+'.json';a.click();
+document.getElementById('backupStatus').textContent='✓ Exported.';}
+document.getElementById('importFile').addEventListener('change',function(){const f=this.files[0];if(!f)return;
+const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);state=Object.assign(state,d);saveState();
+loadProfileToForm();updateDashboard();document.getElementById('backupStatus').textContent='✓ Imported.';}
+catch(e){document.getElementById('backupStatus').textContent='Import failed: '+e.message;}};r.readAsText(f);});
+
+document.getElementById('foodPhoto').addEventListener('change',function(){const f=this.files[0];if(!f)return;
+const i=document.getElementById('foodPreview');i.src=URL.createObjectURL(f);i.style.display='block';});
+function addFood(){const name=document.getElementById('foodName').value.trim()||'Food';
+state.foodLog.push({date:todayKey(),name,calories:+document.getElementById('foodCal').value||0,protein:+document.getElementById('foodProtein').value||0,carbs:+document.getElementById('foodCarbs').value||0,fat:+document.getElementById('foodFat').value||0});
+saveState();['foodName','foodCal','foodProtein','foodCarbs','foodFat'].forEach(id=>document.getElementById(id).value='');updateDashboard();}
+function deleteFood(i){const items=todayFood(),item=items[i];const idx=state.foodLog.indexOf(item);
+if(idx>-1)state.foodLog.splice(idx,1);saveState();updateDashboard();}
+
+async function analyzeFood(){const file=document.getElementById('foodPhoto').files[0],desc=document.getElementById('foodDesc').value.trim();
+const apiKey=state.profile.apiKey,model=state.profile.model||'gemini-2.0-flash';
+const st=document.getElementById('foodStatus');
+if(!apiKey){st.textContent='Add a Gemini API key in Setup, or enter manually below.';return;}
+if(!file){st.textContent='Upload a food photo first.';return;}
+st.textContent='Analyzing...';
+try{const b64=await fileToBase64(file);
+const prompt='You are a professional nutritionist. Analyze the food in this image. Description: '+desc+'. Estimate portion size. Return ONLY JSON with keys: food, calories, protein, carbs, fat, confidence, notes. Calories in kcal, macros in grams.';
+const text=await callGemini(apiKey,model,prompt,b64,file.type);
+const d=extractJson(text);
+document.getElementById('foodName').value=d.food||'';
+document.getElementById('foodCal').value=d.calories||'';
+document.getElementById('foodProtein').value=d.protein||'';
+document.getElementById('foodCarbs').value=d.carbs||'';
+document.getElementById('foodFat').value=d.fat||'';
+st.textContent='✓ Detected: '+(d.food||'food')+' ('+(d.calories||'?')+' kcal). '+(d.notes||'');}
+catch(e){st.textContent='Error: '+e.message;}}
+
+function addWater(ml){const t=todayKey();state.waterLog[t]=(state.waterLog[t]||0)+ml;
+saveState();renderWater();updateDashboard();document.getElementById('waterStatus').textContent='+'+ml+' ml added.';}
+function resetWater(){state.waterLog[todayKey()]=0;saveState();renderWater();updateDashboard();}
+
+document.getElementById('physiquePhoto').addEventListener('change',function(){const f=this.files[0];if(!f)return;
+const i=document.getElementById('physiquePreview');i.src=URL.createObjectURL(f);i.style.display='block';});
+async function analyzePhysique(){const file=document.getElementById('physiquePhoto').files[0];
+const apiKey=state.profile.apiKey,model=state.profile.model||'gemini-2.0-flash';
+const st=document.getElementById('physiqueStatus');
+if(!apiKey){st.textContent='Add a Gemini API key in Setup.';return;}
+if(!file){st.textContent='Upload a physique photo first.';return;}
+st.textContent='Analyzing...';
+try{const b64=await fileToBase64(file);
+const prompt='You are a certified personal trainer. Analyze this physique photo. Estimate body fat percentage range, recommend a training level (beginner/intermediate/advanced), and list 5 bodyweight abs exercises needing no equipment. Return ONLY JSON: {bodyFat, level, exercises:[{name, notes}], notes}';
+const text=await callGemini(apiKey,model,prompt,b64,file.type);
+const d=extractJson(text);
+if(d.level){const l=String(d.level).toLowerCase();if(['beginner','intermediate','advanced'].includes(l))document.getElementById('workoutLevel').value=l;}
+let html='<p><strong>Estimated body fat:</strong> '+escapeHtml(d.bodyFat||'N/A')+'</p>';
+if(Array.isArray(d.exercises))html+='<ul class="list">'+d.exercises.map(e=>'<li><div><strong>'+escapeHtml(e.name)+'</strong><div class="meta">'+escapeHtml(e.notes||'')+'</div></div></li>').join('')+'</ul>';
+if(d.notes)html+='<p>'+escapeHtml(d.notes)+'</p>';
+document.getElementById('physiqueResult').innerHTML=html;st.textContent='✓ Done.';}
+catch(e){st.textContent='Error: '+e.message;}}
+
+function generateWorkout(){const level=document.getElementById('workoutLevel').value;
+const minutes=+document.getElementById('workoutMinutes').value||10;
+const rounds=minutes<=10?2:3,work=40,rest=20;
+const count=Math.max(4,Math.floor((minutes*60/rounds)/(work+rest)));
+const pools={
+beginner:[{name:'Dead Bug',notes:'Press lower back into floor.'},{name:'Plank',notes:'Straight line head to heels.'},{name:'Bird Dog',notes:'Opposite arm and leg.'},{name:'Glute Bridge',notes:'Squeeze glutes at top.'},{name:'Standing Knee to Elbow',notes:'Slow and controlled.'},{name:'Marching Bridge',notes:'Keep hips level.'}],
+intermediate:[{name:'Frog Crunches',notes:'Heels together, knees out.'},{name:'Russian Rows',notes:'Rotate from ribs.'},{name:'Thread the Needle',notes:'Shoulder toward floor.'},{name:'Black Widow Knee Slides',notes:'Knee to opposite elbow.'},{name:'Sliding Ab Tucks',notes:'Towel on smooth floor.'},{name:'Mountain Climbers',notes:'Hips low, quick feet.'}],
+advanced:[{name:'Ab Halos',notes:'Circle with upper body.'},{name:'V-Ups',notes:'Touch toes, control down.'},{name:'Hollow Body Hold',notes:'Low back pressed down.'},{name:'Russian Twists',notes:'Feet off floor.'},{name:'Leg Raises',notes:'Slow on the way down.'},{name:'Plank Jacks',notes:'Jump feet in and out.'}]};
+const pool=pools[level]||pools.intermediate,exercises=[];
+for(let i=0;i<count;i++){const ex=pool[i%pool.length];exercises.push({name:ex.name,notes:ex.notes,duration:work,rest});}
+state.workoutPlan={rounds,exercises};saveState();renderWorkoutPlan();}
+function renderWorkoutPlan(){const el=document.getElementById('workoutPlan');
+if(!state.workoutPlan){el.innerHTML='';return;}
+const p=state.workoutPlan;
+el.innerHTML='<p style="font-size:.85rem;color:var(--muted)">'+p.rounds+' rounds · '+p.exercises.length+' exercises per round</p><ul class="list">'+p.exercises.map(e=>'<li><div><strong>'+escapeHtml(e.name)+'</strong><div class="meta">'+e.duration+'s work · '+e.rest+'s rest — '+escapeHtml(e.notes)+'</div></div></li>').join('')+'</ul>';}
+
+let workoutTimer=null,ws={index:0,round:1,timeLeft:0,running:false};
+function startWorkout(){if(!state.workoutPlan){alert('Generate a workout first.');return;}
+ws={index:0,round:1,timeLeft:state.workoutPlan.exercises[0].duration,running:true};
+clearInterval(workoutTimer);workoutTimer=setInterval(tickWorkout,1000);renderTimer();}
+function stopWorkout(){ws.running=false;clearInterval(workoutTimer);
+document.getElementById('timerDisplay').innerHTML='Stopped<small></small>';}
+function tickWorkout(){if(!ws.running)return;ws.timeLeft--;
+if(ws.timeLeft<=0){ws.index++;
+if(ws.index>=state.workoutPlan.exercises.length){ws.index=0;ws.round++;
+if(ws.round>state.workoutPlan.rounds){stopWorkout();
+document.getElementById('timerDisplay').innerHTML='Complete! 🎉<small>Great work</small>';return;}}
+ws.timeLeft=state.workoutPlan.exercises[ws.index].duration;beep();}
+renderTimer();}
+function renderTimer(){const ex=state.workoutPlan.exercises[ws.index];
+document.getElementById('timerDisplay').innerHTML=ws.timeLeft+'s<small>'+escapeHtml(ex.name)+' · Round '+ws.round+'/'+state.workoutPlan.rounds+'</small>';}
+function beep(){try{const c=new(window.AudioContext||window.webkitAudioContext)();const o=c.createOscillator(),g=c.createGain();
+o.connect(g);g.connect(c.destination);o.frequency.value=880;g.gain.value=0.08;o.start();o.stop(c.currentTime+0.15);}catch(e){}}
+
+function addWeight(){const w=+document.getElementById('progressWeight').value;
+const d=document.getElementById('progressDate').value||todayKey();
+if(!w)return;state.weightLog.push({date:d,weight:w});state.profile.weight=w;saveState();
+document.getElementById('progressWeight').value='';updateDashboard();}
+
+function fileToBase64(file){return new Promise((res,rej)=>{const r=new FileReader();
+r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});}
+async function callGemini(apiKey,model,prompt,base64,mimeType){
+const url='https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+apiKey;
+const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({contents:[{parts:[{text:prompt},{inline_data:{mime_type:mimeType,data:base64}}]}]})});
+if(!res.ok){throw new Error('API '+res.status);}
+const data=await res.json();
+return data.candidates[0].content.parts[0].text;}
+function extractJson(t){const m=t.match(/\{[\s\S]*\}/);if(!m)throw new Error('No JSON in AI response');return JSON.parse(m[0]);}
+
+let deferredPrompt=null;
+const installBtn=document.getElementById('installBtn');
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;installBtn.style.display='block';});
+installBtn.addEventListener('click',async()=>{if(!deferredPrompt)return;
+deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;installBtn.style.display='none';});
+window.addEventListener('appinstalled',()=>{installBtn.style.display='none';});
+
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+navigator.serviceWorker.register('sw.js').then(()=>{
+document.getElementById('swNote').textContent='✓ Offline mode active.';
+}).catch(()=>{});
+}
+if(window.matchMedia('(display-mode: standalone)').matches){installBtn.style.display='none';}
+
+loadState();loadProfileToForm();
+document.getElementById('progressDate').value=todayKey();
+document.getElementById('workoutMinutes').value=state.profile.workoutMinutes||10;
+if(state.workoutPlan)renderWorkoutPlan();
+updateDashboard();
+</script>
+</body>
+</html>
