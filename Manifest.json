@@ -1,0 +1,19 @@
+{
+  "name": "Shift Abs — Fat Loss & Abs",
+  "short_name": "Shift Abs",
+  "description": "Free fat-loss and abs app for restaurant workers.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%2322c55e'/><text x='256' y='330' font-family='sans-serif' font-size='220' font-weight='bold' text-anchor='middle' fill='%23052e16'>ABS</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
